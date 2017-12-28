@@ -1,8 +1,10 @@
+import sys
+sys.path.append('../zestyr')
+
 import unittest
 import zestyr
 
 import os
-import sys
 
 import ipdb
 import IPython

@@ -9,7 +9,7 @@ setup(name='zestyr',
       license='MPL-2.0',
       keywords='zephyr test runner',
       packages=['zestyr'],
-      python_requires = '>=3',
+      python_requires = '>=3.6',
       entry_points={'console_scripts':['zcase = zestyr.case:main',
                                        'zexec = zestyr.exec:main',
                                         ]}
