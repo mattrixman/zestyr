@@ -62,8 +62,6 @@ push_parser.set_defaults(verb='push')
 rm_parser = subparsers.add_parser("rm")
 rm_parser.add_argument('id', help="The test id", action="store")
 rm_parser.set_defaults(verb='rm')
-
-
 argcomplete.autocomplete(parser)
 
 def parse(args):
