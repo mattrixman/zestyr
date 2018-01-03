@@ -9,9 +9,9 @@ class Client:
     def __init__(self, auth, ctxt=context.default()):
         self.context = ctxt
         self.auth_header = auth
-        self.http = self.context.http_lib.PoolManager()
-        self.context.http_lib.disable_warnings(
-                self.context.http_lib.exceptions.InsecureRequestWarning)
+        self.http = urllib3.PoolManager()
+        urllib3.disable_warnings(
+                urllib3.exceptions.InsecureRequestWarning)
 
     def request(self, verb, url, body=None):
         try:

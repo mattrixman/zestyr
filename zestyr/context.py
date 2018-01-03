@@ -1,7 +1,6 @@
 from collections import namedtuple
-import urllib3
 
-Context = namedtuple("Context", "quiet verbose dry_run http_lib")
+Context = namedtuple("Context", "quiet verbose dry_run")
 
 def default():
-    return Context(False, False, False, urllib3)
+    return Context(False, False, False)
