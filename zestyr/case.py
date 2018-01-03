@@ -1,7 +1,8 @@
 import sys
 import os
-import argcomplete, argparse
+import argparse
 import textwrap
+import zestyr.user as user
 
 def deindent(count, string):
     return textwrap.indent(text=textwrap.dedent(string)[1:-1], prefix=count*' ')
@@ -57,7 +58,7 @@ push_help=deindent(0,
 
 push_desc = "Upload test case modifications to Zephyr"
 push_parser = subparsers.add_parser("push", help=push_desc, usage=push_help)
-push_parser.add_argument('id', action="store")
+push_parser.add_argument('id', action="store", help="the zephyr issue id to be updated")
 
 rm_help=deindent(4,
         """
@@ -70,10 +71,7 @@ rm_help=deindent(4,
         """.format(prog_name))
 rm_desc = "Delete test cases from Zephyr"
 rm_parser = subparsers.add_parser("rm", help=rm_desc, usage=rm_help)
-rm_parser.add_argument('id', action="store")
-
-
-argcomplete.autocomplete(parser)
+rm_parser.add_argument('id', action="store", help="the zephyr issue id to be deleted")
 
 def parse(args):
     return  parser.parse_args(args[1:])
@@ -94,6 +92,7 @@ class Case:
         pass
 
     def create(self):
+        auth_header = user.get_auth_header()
         # go tell jira
         pass
 

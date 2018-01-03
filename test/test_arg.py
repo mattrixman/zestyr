@@ -1,10 +1,5 @@
-import sys
-sys.path.append('../zestyr')
-
-import unittest
-import zestyr
-
-import os
+import sys, os
+sys.path.insert(0, os.path.abspath('..'))
 
 import ipdb
 import IPython
@@ -13,14 +8,18 @@ def undebug():
     ipdb.set_trace = f
     IPython.embed = f
 
+import unittest
+import zestyr
+
 class Case(unittest.TestCase):
 
     # correct callback gets called with correct repo name
 
     def test_parse_add_verbose(self):
-        argv = ['-v', 'new', 'foo']
+        argv = ['test_arg', '-v', 'new', 'foo']
         parsed = zestyr.case.parse(argv)
 
+        print(parsed)
         self.assertEqual('new', parsed.verb)
 
         self.assertTrue(hasattr(parsed, 'desc'))
@@ -29,11 +28,11 @@ class Case(unittest.TestCase):
 
         self.assertFalse(parsed.quiet)
         self.assertTrue(parsed.verbose)
-        self.assertFalse(parsed.partial_dry_run)
+        self.assertFalse(parsed.local_dry_run)
         self.assertFalse(parsed.dry_run)
 
     def test_parse_rm_quiet(self):
-        argv = ['--quiet', 'rm', '123']
+        argv = ['test_arg', '--quiet', 'rm', '123']
         parsed = zestyr.case.parse(argv)
 
         self.assertEqual('rm', parsed.verb)
@@ -44,11 +43,11 @@ class Case(unittest.TestCase):
 
         self.assertTrue(parsed.quiet)
         self.assertFalse(parsed.verbose)
-        self.assertFalse(parsed.partial_dry_run)
+        self.assertFalse(parsed.local_dry_run)
         self.assertFalse(parsed.dry_run)
 
     def test_parse_push_dry(self):
-        argv = ['-d', 'push', '123']
+        argv = ['test_arg', '-d', 'push', '123']
         parsed = zestyr.case.parse(argv)
 
         self.assertEqual('push', parsed.verb)
@@ -59,7 +58,7 @@ class Case(unittest.TestCase):
 
         self.assertFalse(parsed.quiet)
         self.assertFalse(parsed.verbose)
-        self.assertFalse(parsed.partial_dry_run)
+        self.assertFalse(parsed.local_dry_run)
         self.assertTrue(parsed.dry_run)
 
     def test_parse_no_verb_exit_nonzero(self):

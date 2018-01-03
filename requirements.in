@@ -1,2 +1,3 @@
-argcomplete
 ipdb
+urllib3
+pip-tools
