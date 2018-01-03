@@ -7,17 +7,17 @@ from zestyr import file as zfile
 import IPython
 
 class TestCase():
-    def __init__(self, meta, project_id, summary):
+    def __init__(self, api, project_id, summary):
         self.fields = {}
-        self.fields['issuetype'] = meta.zephyr_issue_type
+        self.fields['issuetype'] = api.zephyr_issue_type
         self.fields['summary'] = summary
         self.fields['project'] = { 'id' : project_id }
 
 # Encapsulates details about the local jira/zephyr install that are unlikely to change
-class Meta(http.RestCaller):
+class API(http.RestCaller):
 
     def __init__(self, client, host, context=context.default()):
-        super(Meta, self).__init__(client, host)
+        super(API, self).__init__(client, host)
 
         try:
             # Examine Filesystem

@@ -1,0 +1,31 @@
+# update jira
+
+import zestyr, json
+
+    host = "jira.dev.clover.com"
+    client = zestyr.http.Client(zestyr.user.get_auth_header())
+    jira = zestyr.jira.API(client, host)
+    case = jira.get_test_case_by_key('BILT-29')
+    
+    case.fields['summary'] = 'dummy test case O'
+    case.fields['description'] = 'dummy description O'
+    
+    jira.update_test_case(case)
+
+# update zephyr
+
+    host = "jira.dev.clover.com"
+    client = zestyr.http.Client(zestyr.user.get_auth_header())
+    jira = zestyr.jira.API(client, host)
+    zephyr = zestyr.zephyr.API(client, host)
+    j_case = jira.get_test_case_by_key('BILT-30')
+    z_case = zephyr.get_steps_for_test_case(j_case)
+    z_case = zephyr.ensure_n_steps_on(4, z_case)
+    z_case.steps[0].step = 'foo'
+    z_case.steps[1].data = 'bar'
+    z_case.steps[2].result = 'baz'
+    z_case.steps[3].step = 'step'
+    z_case.steps[3].data = 'data'
+    z_case.steps[3].result = 'result'
+    zephyr.update_case_steps(z_case)
+
