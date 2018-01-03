@@ -21,5 +21,6 @@ pygments==2.2.0           # via ipython
 simplegeneric==0.8.1      # via ipython
 six==1.11.0               # via pip-tools, prompt-toolkit, traitlets
 traitlets==4.3.2          # via ipython
+urllib3-mock==0.3.3
 urllib3==1.22
 wcwidth==0.1.7            # via prompt-toolkit

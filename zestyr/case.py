@@ -84,7 +84,7 @@ def main():
 class Case:
     def __init__(self, user, project, description):
         self.user
-        self.projcet=project
+        self.project=project
         self.description=descrption
 
     def exists(self):

@@ -11,7 +11,7 @@ def undebug():
 import unittest
 import zestyr
 
-class Case(unittest.TestCase):
+class Args(unittest.TestCase):
 
     # correct callback gets called with correct repo name
 

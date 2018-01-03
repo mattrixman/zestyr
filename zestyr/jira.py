@@ -1,5 +1,6 @@
 import json
 from copy import deepcopy
+from zestyr import context
 from zestyr import http
 from zestyr import file as zfile
 
@@ -15,7 +16,7 @@ class TestCase():
 # Encapsulates details about the local jira/zephyr install that are unlikely to change
 class Meta(http.RestCaller):
 
-    def __init__(self, client, host):
+    def __init__(self, client, host, context=context.default()):
         super(Meta, self).__init__(client, host)
 
         try:
@@ -24,11 +25,8 @@ class Meta(http.RestCaller):
             assert "projects" in self.issue_meta
         except IOError:
             # Query Jira
-            issue_meta_resp = client.get('https://{}/rest/api/2/issue/createmeta'.format(host))
-            http.exit_on_error(issue_meta_resp, 
-                    message="while requesting /issue/createmeta :")
-
-            self.issue_meta = self.get('/rest/api/2/issue/createmeta')
+            response = self.get('/rest/api/2/issue/createmeta')
+            self.issue_meta = response.data
             zfile.write_dict(zfile.issue_meta_file_name, self.issue_meta)
 
         # loop over projects, map keys to id's and grab the Zephyr Issue type
@@ -46,7 +44,8 @@ class Meta(http.RestCaller):
             raise ValueError("Didn't find any issue types whose descriptions included 'Zephyr Test'")
 
     def get_test_case_by_key(self, key):
-        case_dict = self.get('/rest/api/2/issue/{}'.format(key))
+        response = self.get('/rest/api/2/issue/{}'.format(key))
+        case_dict = response.data
         case = TestCase(self, int(case_dict['fields']['project']['id']), case_dict['fields']['summary'])
         case.__dict__.update(case_dict)
         self.print_verb_test_case("Fetched", case.key)
@@ -73,7 +72,8 @@ class Meta(http.RestCaller):
     def update_test_case(self, content):
 
         #  get editable fields
-        edit_meta = self.get('/rest/api/2/issue/BILT-29/editmeta')
+        response = self.get('/rest/api/2/issue/BILT-29/editmeta')
+        edit_meta = response.data
 
         # create an object with just those fields
         update = type('TestCaseUpdate', (object,), {})()

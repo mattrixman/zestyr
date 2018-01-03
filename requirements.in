@@ -1,3 +1,4 @@
 ipdb
 urllib3
+urllib3-mock
 pip-tools
