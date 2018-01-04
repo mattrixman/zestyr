@@ -13,6 +13,12 @@ class TestCase():
         self.fields['summary'] = summary
         self.fields['project'] = { 'id' : project_id }
 
+    def make(jira_api, jira_dict):
+        assert 'fields' in jira_dict
+        case = TestCase(jira_api, int(jira_dict['fields']['project']['id']), jira_dict['fields']['summary'])
+        case.__dict__.update(jira_dict)
+        return case
+
 # Encapsulates details about the local jira/zephyr install that are unlikely to change
 class API(http.RestCaller):
 
@@ -46,9 +52,8 @@ class API(http.RestCaller):
     def get_test_case_by_key(self, key):
         response = self.get('/rest/api/2/issue/{}'.format(key))
         case_dict = response.data
-        case = TestCase(self, int(case_dict['fields']['project']['id']), case_dict['fields']['summary'])
-        case.__dict__.update(case_dict)
-        self.print_verb_test_case("Fetched", case.key)
+        case = TestCase.make(self, case_dict)
+        self.print_verb_test_case("Fetched", key)
         return case
 
     def print_verb_test_case(self, verb, key):
@@ -59,7 +64,7 @@ class API(http.RestCaller):
         project_id = self.ids_by_key[project_key]
         case = TestCase(self, project_id, summary)
         response = self.post('/rest/api/2/issue', case)
-        case.__dict__.update(response)
+        case.__dict__.update(response.data)
         self.print_verb_test_case("Created", case.key)
         return case
 
@@ -83,7 +88,10 @@ class API(http.RestCaller):
             if key in ['resolution', 'issuelinks', 'comment']:
                 pass
             else:
-                update.fields[key] = content.fields[key]
+                try:
+                    update.fields[key] = content.fields[key]
+                except KeyError:
+                    pass
 
         response = self.put('/rest/api/2/issue/{}'.format(content.key), update)
         self.print_verb_test_case("Updated", content.key)

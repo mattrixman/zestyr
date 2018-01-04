@@ -18,12 +18,17 @@ class Status(Enum):
     WIP=3
     BLOCKED=4
 
-
 class TestStep:
     def __init__(self, step, data, result):
         self.step = step
         self.data = data
         self.result = result
+
+    def update(self, other):
+        self.step = other.step
+        self.data = other.data
+        self.result = other.result
+
 
     def __repr__(self):
         return "<zephyr.TestStep: " + \
@@ -125,11 +130,13 @@ class API(http.RestCaller):
                     self.delete('/rest/zapi/latest/teststep/{}/{}'.format(case.id, step.id))
                 updated_case.steps = steps_to_keep
 
+        print("Test Case {} now has {} test steps".format(case.key, n))
         return updated_case
 
     def update_case_steps(self, case):
         for step in case.steps:
             self.put('/rest/zapi/latest/teststep/{}/{}'.format(case.id, step.id), step)
+        print("Updated Steps on Test Case {}".format(case.key))
         return case
 
     def get_cycles_for_project_with_id(self, proj_id):
