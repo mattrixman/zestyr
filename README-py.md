@@ -1,3 +1,7 @@
+# Installation
+
+    pip install -e .
+
 # Usage Examples
 
 ### update jira
@@ -66,3 +70,9 @@
     test_case.key = 'BILT-40'
     test_case.steps = [zestyr.zephyr.TestStep('foo', 'bar', 'baz'), zestyr.zephyr.TestStep('FOO', 'BAR', 'BAZ')]
     test_case.put_sync('BILT') # project key
+
+### pull a zephyr test case (with steps)
+
+    import zestyr
+    test_case = zestyr.case.Case('jira.dev.clover.com', '')
+    test_case.pull('BILT-40')

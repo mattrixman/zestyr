@@ -199,6 +199,12 @@ class Case:
         z_case = self.zephyr.get_steps_for_test_case(z_case)
         self.__dict__.update(z_case.__dict__)
 
+    # populate self from jira and zephyr
+    def pull(self, test_case_key):
+        j_case = self.jira.get_test_case_by_key(test_case_key)
+        z_case = self.zephyr.get_steps_for_test_case(j_case)
+        self.__dict__.update(z_case.__dict__)
+
     def get(host, issue_key):
         # some prereq's
         client = user.get_auth_header()
