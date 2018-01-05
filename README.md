@@ -3,7 +3,9 @@
 
 #### Running tests
 
-Zestyr is a python api for Zephyr which aims to provide automated execution of test cycles.  Imagine the scheduled execution of a test cycle before you make it to the office.  Here's how Zestyr helps with that:
+Zestyr is a python api for Zephyr which aims to provide automated execution of test cycles.  
+
+Imagine the scheduled execution of a test cycle before you make it to the office.  Here's how Zestyr helps with that:
 
  - The night before, you configure chron to run `zexec --cycle 'Monday' --version 'beta'` at 1:00 AM
  - At 1:00 AM, Chron calls Zestyr
