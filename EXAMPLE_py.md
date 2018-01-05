@@ -56,14 +56,14 @@
     zephyr = zestyr.zephyr.API(client, host)
     cycles = zephyr.get_cycles_for_test_with_key('BILT-16')
 
-### create a zephyr test case (with steps)
+### create a zephyr test case
 
     import zestyr
     test_case = zestyr.case.Case('jira.dev.clover.com', 'yet another dummy test case 5')
     test_case.steps = [zestyr.zephyr.TestStep('foo', 'bar', 'baz'), zestyr.zephyr.TestStep('FOO', 'BAR', 'BAZ')]
     test_case.put_sync('BILT') # project key
 
-### overwrite a zephyr test case (with steps)
+### overwrite a zephyr test case
 
     import zestyr
     test_case = zestyr.case.Case('jira.dev.clover.com', 'yet another dummy test case 6')
@@ -71,8 +71,13 @@
     test_case.steps = [zestyr.zephyr.TestStep('foo', 'bar', 'baz'), zestyr.zephyr.TestStep('FOO', 'BAR', 'BAZ')]
     test_case.put_sync('BILT') # project key
 
-### pull a zephyr test case (with steps)
+### pull a zephyr test case
 
     import zestyr
     test_case = zestyr.case.Case('jira.dev.clover.com', '')
     test_case.pull('BILT-40')
+
+### another way to pull a zephyr test case
+
+    import zestyr                                              
+    tc = zestyr.case.Case.get('jira.dev.clover.com', 'BILT-16')

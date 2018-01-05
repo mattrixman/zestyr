@@ -1,5 +1,6 @@
 import sys
 import os
+import re
 import argparse
 import textwrap
 import zestyr
@@ -144,9 +145,7 @@ class Case:
             raise ValueError("slug must start with /")
         return "https://{}{}".format(self.host, slug)
 
-    # sync with jira and zephyr
-    # when in doubt, prefer values on self
-    def put_sync(self, project_key):
+    def create_if_not_exist(self, project_key):
         def create_j_obj():
             if 'summary' not in self.fields:
                 print("Warning: adding test case without summary")
@@ -168,8 +167,16 @@ class Case:
         # if no key, create a jira object and get one
         else:
             j_obj = create_j_obj()
+        return j_obj
 
-        # either way, we now have a jira test case, grab its key
+    # sync with jira and zephyr
+    # when in doubt, prefer values on self
+    def put_sync(self, project_key):
+
+        # ensure an object exists within jira for this case
+        j_obj = create_if_not_exist(project_key)
+
+        # grab its identifying details
         self.key = j_obj.key
         self.id = j_obj.id
 
@@ -207,7 +214,7 @@ class Case:
 
     def get(host, issue_key):
         # some prereq's
-        client = user.get_auth_header()
+        client = zestyr.http.Client(user.get_auth_header())
         jira = zestyr.jira.API(client, host)
         zephyr = zestyr.zephyr.API(client, host)
 
@@ -226,6 +233,37 @@ class Case:
         auth_header = user.get_auth_header()
         # go tell jira
         pass
+
+    def write(self):
+        assert hasattr(self, 'key')
+        with open("{}.py".format(self.key), "w+") as file:
+            file.write("""
+import os
+import re
+import zestyr
+
+# return an instance of the test case defined in this file
+# if the specified key doesn't exist, rename/rewrite the file so it's correct
+def get_case():
+    test_case = zestyr.case.Case('jira.dev.clover.com', 'dummy case')
+    test_case.key = '{}'
+    test_case.summary = 'A new kind of dummy test case'
+    test_case = test_case.create_if_not_exist('{}')
+
+    # steps go here
+
+    # modify this file if the above key is wrong
+    this_file_name = os.path.basename(__file__)
+    zestyr.file.try_nuke_rewrite(test_case, this_file_name)
+
+    return test_case
+
+if __name__ == '__main__':
+    get_case()
+                    """.format(self.key, re.sub('[0-9-]', '', self.key)))
+
+# TODO: is it true that all test-case-keys are their project keys
+# plush dashes and a letter?
 
 if __name__ == "__main__":
     main()
