@@ -77,19 +77,19 @@ class API(http.RestCaller):
     def update_test_case(self, content):
 
         #  get editable fields
-        response = self.get('/rest/api/2/issue/BILT-29/editmeta')
+        response = self.get('/rest/api/2/issue/{}/editmeta'.format(content.key))
         edit_meta = response.data
 
         # create an object with just those fields
         update = type('TestCaseUpdate', (object,), {})()
         update.fields = {}
-        for key in edit_meta['fields'].keys():
+        for field in edit_meta['fields'].keys():
             # not sure why--I get an error when I include these fields
-            if key in ['resolution', 'issuelinks', 'comment']:
+            if field in ['resolution', 'issuelinks', 'comment']:
                 pass
             else:
                 try:
-                    update.fields[key] = content.fields[key]
+                    update.fields[field] = content.fields[field]
                 except KeyError:
                     pass
 

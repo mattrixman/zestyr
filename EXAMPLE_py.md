@@ -75,9 +75,10 @@
 
     import zestyr
     test_case = zestyr.case.Case('jira.dev.clover.com', '')
-    test_case.pull('BILT-40')
+    test_case.pull('BILT-53')
 
 ### another way to pull a zephyr test case
 
     import zestyr                                              
     tc = zestyr.case.Case.get('jira.dev.clover.com', 'BILT-16')
+    tc.write()

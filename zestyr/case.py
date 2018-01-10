@@ -2,7 +2,8 @@ import sys
 import os
 import re
 import argparse
-import textwrap
+from textwrap import dedent
+from textwrap import indent
 import zestyr
 import zestyr.user as user
 import zestyr.http as http
@@ -10,8 +11,11 @@ import zestyr.jira as jira
 import zestyr.zephyr as zephyr
 from copy import deepcopy
 
+def undent(string):
+    return dedent(string)[1:-1]
+
 def deindent(count, string):
-    return textwrap.indent(text=textwrap.dedent(string)[1:-1], prefix=count*' ')
+    return indent(text=dedent(string)[1:-1], prefix=count*' ')
 
 prog_name = os.path.basename(sys.argv[0])
 
@@ -100,12 +104,6 @@ class Case:
     def data_only(self):
         obj = type('Case', (object,), {})
 
-        if hasattr(self, 'self'):
-            obj.self = deepcopy(self.self)
-
-        if hasattr(self, 'self'):
-            obj.self = deepcopy(self.self)
-
         if hasattr(self, 'fields'):
             obj.fields = deepcopy(self.fields)
 
@@ -113,21 +111,16 @@ class Case:
             obj.id = deepcopy(self.id)
 
         if hasattr(self, 'key'):
-            obj.key = deepcopy(self.key)
+            obj.set_key(self.get_key())
 
         if hasattr(self, 'steps'):
             obj.steps = deepcopy(self.steps)
 
         return obj
 
+    # like above, but omit steps
     def data_only_no_steps(self):
         obj = type('Case', (object,), {})
-
-        if hasattr(self, 'self'):
-            obj.self = deepcopy(self.self)
-
-        if hasattr(self, 'self'):
-            obj.self = deepcopy(self.self)
 
         if hasattr(self, 'fields'):
             obj.fields = deepcopy(self.fields)
@@ -136,7 +129,7 @@ class Case:
             obj.id = deepcopy(self.id)
 
         if hasattr(self, 'key'):
-            obj.key = deepcopy(self.key)
+            obj.key = self.get_key()
 
         return obj
 
@@ -156,7 +149,7 @@ class Case:
         # if this case has a key defined
         if hasattr(self, 'key'):
             # see if jira knows about it
-            resp = self.client.request('GET', self.make_url('/rest/api/2/issue/{}'.format(self.key)))
+            resp = self.client.request('GET', self.make_url('/rest/api/2/issue/{}'.format(self.get_key())))
             if resp.http_obj.status == 404:
                 # if not, create it
                 j_obj = create_j_obj()
@@ -174,10 +167,10 @@ class Case:
     def put_sync(self, project_key):
 
         # ensure an object exists within jira for this case
-        j_obj = create_if_not_exist(project_key)
+        j_obj = self.create_if_not_exist(project_key)
 
         # grab its identifying details
-        self.key = j_obj.key
+        self.set_key(j_obj.key)
         self.id = j_obj.id
 
         # update jira with values from self
@@ -187,7 +180,7 @@ class Case:
         self.jira.update_test_case(j_obj)
 
         # update self with values from jira
-        j_case = self.jira.get_test_case_by_key(self.key)
+        j_case = self.jira.get_test_case_by_key(self.get_key())
         self.__dict__.update(j_case.__dict__)
 
 
@@ -234,36 +227,118 @@ class Case:
         # go tell jira
         pass
 
-    def write(self):
+    def set_key(self, key):
+        self.project = re.sub('[0-9-]', '', key)
+        self.key = key
+
+    def get_key(self):
         assert hasattr(self, 'key')
-        with open("{}.py".format(self.key), "w+") as file:
-            file.write("""
-import os
-import re
-import zestyr
+        return self.key
 
-# return an instance of the test case defined in this file
-# if the specified key doesn't exist, rename/rewrite the file so it's correct
-def get_case():
-    test_case = zestyr.case.Case('jira.dev.clover.com', 'dummy case')
-    test_case.key = '{}'
-    test_case.summary = 'A new kind of dummy test case'
-    test_case = test_case.create_if_not_exist('{}')
+    def write(self):
 
-    # steps go here
+        def one_t_quot():
+            return "\"\"\""
 
-    # modify this file if the above key is wrong
-    this_file_name = os.path.basename(__file__)
-    zestyr.file.try_nuke_rewrite(test_case, this_file_name)
+        def t_quot(string):
+            return "\"\"\"" + string + "\"\"\""
 
-    return test_case
+        def step_str(step):
+            #    Step(step=undent("""
+            #             this is a step description
+            #             it might include a code fragment
+            #             {code}
+            #             echo hello world
+            #             {code}
+            #         """),
+            #         data=undent("""
+            #             this is a data field
+            #         """),
+            #         result=undent("""
+            #             this is a result
+            #             {code}
+            #             echo goodbye
+            #             {code}
+            #         """)
+            #     ),
+            string = indent("Step(step=undent(" + one_t_quot(),     4 * ' ') + '\n' \
+            + indent(step.step,                                12 * ' ') + '\n' \
+            + indent(one_t_quot() + "),",                       8 * ' ') + '\n' \
+            + indent("data=undent(" + one_t_quot(),             8 * ' ') + '\n' \
+            + indent(step.data,                                12 * ' ') + '\n' \
+            + indent(one_t_quot() + "),",                       8 * ' ') + '\n' \
+            + indent("result=undent(" + one_t_quot(),           8 * ' ') + '\n' \
+            + indent(step.result,                              12 * ' ') + '\n' \
+            + indent(one_t_quot() + ")",                        8 * ' ') + '\n' \
+            + indent("),",                                      4 * ' ') + '\n'
+            return string
 
-if __name__ == '__main__':
-    get_case()
-                    """.format(self.key, re.sub('[0-9-]', '', self.key)))
+        try:
+            summary = self.fields['summary']
+        except KeyError:
+            summary = ''
 
-# TODO: is it true that all test-case-keys are their project keys
-# plush dashes and a letter?
+        try:
+            description = self.fields['description'].replace('\r\n',os.linesep)
+        except KeyError:
+            description = ''
+
+        file_contents = undent("""
+            import zestyr
+            from zestyr.zephyr import TestStep as Step
+            import textwrap
+            def undent(string):
+                return textwrap.dedent(string)[1:-1]
+
+            host = {0}
+            key = {1}
+            summary = {2}
+            description = undent(\"\"\" """.format(t_quot(self.host), 
+                                                t_quot(self.get_key()), 
+                                                t_quot(summary)
+                                                )
+            ) \
+        + "\n" \
+        + indent(description, '    ') \
+        + "\n\"\"\")\n\n" \
+        + "steps = [" \
+        + "\n"
+
+        for step in self.steps:
+            file_contents += step_str(step)
+
+        file_contents += undent("""
+            ]
+
+            import os
+            import re
+
+
+            # return an instance of the test case defined in this file
+            def make_case():
+                test_case = zestyr.case.Case(host, summary)
+                test_case.set_key(key)
+                test_case.fields['summary'] = summary
+                test_case.fields['description'] = description
+                test_case.steps = steps
+                return test_case
+
+            def pull_case():
+                test_case = make_case()
+                test_case.pull(test_case.get_key())
+                test_case.write()
+
+            def push_case():
+                test_case = make_case()
+                test_case.put_sync(test_case.project)
+
+            if __name__ == '__main__':
+                case = make_case()
+                print(case.__dict__)
+        """)
+
+        with open("{}.py".format(self.get_key()), "w+") as file:
+            file.write(file_contents)
 
 if __name__ == "__main__":
     main()
